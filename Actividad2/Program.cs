@@ -15,6 +15,8 @@ internal class Program
 
     private static readonly List<string> saleItemNames = [];
     private static readonly List<int> saleItemQuantities = [];
+    private static readonly List<string> soldItemNames = [];
+    private static readonly List<int> soldItemQuantities = [];
     private static int totalSaleItems = 5;
 
     private static void Main(string[] args)
@@ -170,6 +172,8 @@ internal class Program
                     break;
                 case "4":
                     pass = false;
+                    userIds.Clear();
+                    userNames.Clear();
                     break;
                 default:
                     showMessage("Opción no valida.", true);
@@ -321,6 +325,8 @@ internal class Program
                     }
                     break;
                 case "4":
+                    itemNames.Clear();
+                    itemPrices.Clear();
                     pass = false;
                     break;
                 default:
@@ -334,6 +340,7 @@ internal class Program
     private static void Sales()
     {
         showMessage("¡Bienvenido al módulo de Gestión de Ventas!", true);
+        int allSoldItems = 0;
         bool valid = false;
         for (int i = 0; i < totalSaleItems; i++)
         {
@@ -347,7 +354,9 @@ internal class Program
                 if (int.TryParse(quantity, out int q) && q > 0)
                 {
                     saleItemNames.Add(saleItemName);
+                    soldItemNames.Add(saleItemName);
                     saleItemQuantities.Add(q);
+                    allSoldItems += q;
                     valid = true;
                 }
                 else
@@ -368,7 +377,6 @@ internal class Program
             switch (showMenu("ventas"))
             {
                 case "1":
-                    int count = 0;
                     loop = true;
                     while (loop)
                     {
@@ -376,6 +384,7 @@ internal class Program
                         for (int j = 0; j < totalSaleItems; j++)
                         {
                             Console.WriteLine($"{j + 1}. {saleItemNames[j]}");
+                            soldItemQuantities.Add(0);
                         }
                         Console.Write($"Ingrese el número del artículo que quiere comprar (1-{totalSaleItems}): ");
                         string item = Console.ReadLine()!;
@@ -386,39 +395,63 @@ internal class Program
                         }
                         else
                         {
-                            valid = false;
-                            while (!valid)
+                            if (saleItemQuantities[i - 1] == 0)
                             {
-                                Console.WriteLine($"{saleItemNames[i - 1]} - {saleItemQuantities[i - 1]}\n");
-                                Console.Write($"Ingrese la cantidad de unidades del artículo {saleItemNames[i - 1]} que desea comprar: ");
-                                string saleQuantity = Console.ReadLine()!;
-                                if (int.TryParse(saleQuantity, out int q) && q > 0)
+                                showMessage($"No hay más unidades de {saleItemNames[i - 1]} disponibles.", false);
+                            }
+                            else
+                            {
+                                
+                                valid = false;
+                                while (!valid)
                                 {
-                                    if (q > saleItemQuantities[i - 1])
+                                    Console.WriteLine($"{saleItemNames[i - 1]} - {saleItemQuantities[i - 1]}\n");
+                                    Console.Write($"Ingrese la cantidad de unidades del artículo {saleItemNames[i - 1]} que desea comprar: ");
+                                    string saleQuantity = Console.ReadLine()!;
+                                    if (int.TryParse(saleQuantity, out int q) && q > 0)
                                     {
-                                        Console.Clear();
-                                        showMessage("No hay cantidad suficiente del artículo.", false);
+                                        if (q > saleItemQuantities[i - 1])
+                                        {
+                                            Console.Clear();
+                                            showMessage("No hay cantidad suficiente del artículo.", false);
+                                        }
+                                        else
+                                        {
+                                            Console.Clear();
+                                            if (q <= saleItemQuantities[i - 1])
+                                            {
+                                                Console.WriteLine($"Producto comprado {saleItemNames[i - 1]} - {saleQuantity} unidades.");
+                                                saleItemQuantities[i - 1] -= q;
+                                                soldItemQuantities[i - 1] += q;
+                                                allSoldItems -= q;
+                                                valid = true;
+                                            }
+                                            else
+                                            {
+                                                showMessage("No hay cantidad suficiente del artículo.", false);
+                                            }
+                                        }
                                     }
                                     else
                                     {
                                         Console.Clear();
-                                        Console.WriteLine($"Producto comprado {saleItemNames[i - 1]} - {saleQuantity} unidades.");
-                                        count++;
-                                        totalSaleItems--;
-                                        saleItemNames.Remove(saleItemNames[i - 1]);
-                                        valid = true;
+                                        showMessage("Entrada inválida. Por favor, ingrese un número entero positivo.", false);
                                     }
                                 }
-                                else
-                                {
-                                    Console.Clear();
-                                    showMessage("Entrada inválida. Por favor, ingrese un número entero positivo.", false);
-                                }
                             }
-                            if (count == 5)
+                            if (allSoldItems == 0)
                             {
                                 Console.Clear();
-                                showMessage("Compra existosa. Máximo de productos alcanzado.", true);
+                                Console.WriteLine("Productos Comprados:");
+                                for (int j = 0; j < soldItemNames.Count; j++)
+                                {
+                                    Console.WriteLine($"{soldItemNames[j]} - {soldItemQuantities[j]}");
+                                }
+                                showMessage("Compra existosa. No hay más productos para comprar.", true);
+                                soldItemNames.Clear();
+                                soldItemQuantities.Clear();
+                                saleItemNames.Clear();
+                                saleItemQuantities.Clear();
                                 totalSaleItems = 5;
                                 loop = false;
                                 pass = false;
@@ -431,8 +464,18 @@ internal class Program
                                         break;
                                     case "2":
                                         Console.Clear();
+                                        Console.WriteLine("Productos Comprados:");
+                                        for (int j = 0; j < soldItemNames.Count; j++)
+                                        {
+                                            Console.WriteLine($"{soldItemNames[j]} - {soldItemQuantities[j]}");
+                                        }
+                                        Console.WriteLine("");
                                         showMessage("Compra exitosa.", true);
                                         totalSaleItems = 5;
+                                        soldItemNames.Clear();
+                                        soldItemQuantities.Clear();
+                                        saleItemNames.Clear();
+                                        saleItemQuantities.Clear();
                                         loop = false;
                                         pass = false;
                                         break;
